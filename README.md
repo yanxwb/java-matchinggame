@@ -1,2 +1,3 @@
 # java-matchinggame
-A matching game implemented in Java. A course project.
+
+傻逼大作业。
