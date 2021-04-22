@@ -36,7 +36,7 @@ public class LianLianKanFrame implements ActionListener {
     private JPanel centerPanel, southPanel, northPanel;
 
     // 重列，重新开始按钮
-    private JButton  resetButton, newlyButton, saveButton, webButton;
+    private JButton  resetButton, newlyButton, saveButton, webButton, loadButton;
 
     // 界面按钮数组,和棋盘数组 一样大
     private JButton[][] allButton = new JButton[countColumns][countRows];
@@ -85,7 +85,10 @@ public class LianLianKanFrame implements ActionListener {
         for (int row = 0; row < countRows; row++) {
             for (int column = 0; column < countColumns; column++) {
                 // 将数组中的值赋值给按钮
-                allButton[row][column] = new JButton(String.valueOf(arry[row ][column ]));
+                // 导入图片，并在按钮上覆盖图片
+                String figurePath = "figure/" + String.valueOf(arry[row][column]) + ".png";
+                Icon icon = new ImageIcon(figurePath);
+                allButton[row][column] = new JButton(icon);
                 if(arry[row ][column ]==0){
                     allButton[row][column].setVisible(false);
                 }
@@ -101,11 +104,14 @@ public class LianLianKanFrame implements ActionListener {
         newlyButton.addActionListener(this);
         saveButton = new JButton("存储当前游戏");
         saveButton.addActionListener(this);
+        loadButton = new JButton("导入游戏");
+        loadButton.addActionListener(this);
         webButton = new JButton("上传到网络");
         webButton.addActionListener(this);
         southPanel.add(resetButton);
         southPanel.add(newlyButton);
         southPanel.add(saveButton);
+        southPanel.add(loadButton);
         southPanel.add(webButton);
         mainFrame.setBounds(x, y, width, height);
         mainFrame.setVisible(true);
@@ -210,7 +216,10 @@ public class LianLianKanFrame implements ActionListener {
             for (int row = 0; row < countRows; row++) {
                 for (int column = 0; column < countColumns; column++) {
                         // 将数组中的值赋值给按钮
-                        allButton[row][column] = new JButton(String.valueOf(arry[row][column]));
+                        // 导入图片，并在按钮上覆盖图片
+                        String figurePath = "figure/" + String.valueOf(arry[row][column]) + ".png";
+                        Icon icon = new ImageIcon(figurePath);
+                        allButton[row][column] = new JButton(icon);
                         if (arry[row][column]==0){
                             allButton[row][column].setVisible(false);
                         }
@@ -234,7 +243,10 @@ public class LianLianKanFrame implements ActionListener {
                        allButton[row][column].setVisible(false);
                    }else {
                        // 将数组中的值赋值给按钮
-                       allButton[row][column] = new JButton(String.valueOf(arry[row ][column]));
+                       // 导入图片，并在按钮上覆盖图片
+                       String figurePath = "figure/" + String.valueOf(arry[row][column]) + ".png";
+                       Icon icon = new ImageIcon(figurePath);
+                       allButton[row][column] = new JButton(icon);
                        // 设置监听
                        allButton[row][column].addActionListener(this);
                    }
@@ -244,9 +256,55 @@ public class LianLianKanFrame implements ActionListener {
             }
 
         }
+        // 导入原有游戏
+        if(e.getSource()==loadButton){
+            //arry=lianLianKanUtil.reloadInitializeArray(arry);
+            String strFileName = JOptionPane.showInputDialog(null,"请输入文件名：\n","输入对话框",JOptionPane.PLAIN_MESSAGE);
+            String fileName = "data/"+ strFileName +".txt";
+            try(FileInputStream fis = new FileInputStream(fileName);
+                InputStreamReader isr = new InputStreamReader(fis);
+                BufferedReader br = new BufferedReader(isr);){
+                for (int row=0;row<countRows;row++){
+                    String line = br.readLine();
+                    for (int column=0;column<countColumns;column++){
+                        int curButton = line.charAt(column*2);
+                        arry[row][column] = curButton-'0';
+                        System.out.println(arry[row][column]);
+                    }
+                }
+                //centerPanel.setVisible(true);
+                centerPanel.setVisible(false);
+                centerPanel= new JPanel();
+                press = false;
+                thisContainer.add(centerPanel,"Center");
+                centerPanel.setLayout(new GridLayout(countRows, countColumns));
+                for (int row = 0; row < countRows; row++) {
+                    for (int column = 0; column < countColumns; column++) {
+                        // 将数组中的值赋值给按钮
+                        // 导入图片，并在按钮上覆盖图片
+                        String figurePath = "figure/" + String.valueOf(arry[row][column]) + ".png";
+                        System.out.println(figurePath);
+                        Icon icon = new ImageIcon(figurePath);
+                        allButton[row][column] = new JButton(icon);
+                        if (arry[row][column]==0){
+                            allButton[row][column].setVisible(false);
+                        }
+                        //allButton[row][column].setVisible(true);
+                        // 设置监听
+                        allButton[row][column].addActionListener(this);
+                        // 将按钮添加到面板上
+                        centerPanel.add(allButton[row][column]);
+                    }
+                }
+                JOptionPane.showMessageDialog(null, "导入成功!");
+            }
+            catch(IOException ee) {System.out.println("IOex");}
+
+        }
         // 存储当前游戏
         if (e.getSource() == saveButton) {
-            String fileName = "data/game.txt";
+            String strFileName = JOptionPane.showInputDialog(null,"请输入文件名：\n","输入对话框",JOptionPane.PLAIN_MESSAGE);
+            String fileName = "data/"+ strFileName +".txt";
             try(FileOutputStream fos = new FileOutputStream(fileName);
                 OutputStreamWriter osw = new OutputStreamWriter(fos);
                 BufferedWriter bw = new BufferedWriter(osw);){
@@ -257,6 +315,7 @@ public class LianLianKanFrame implements ActionListener {
                     bw.write("\n");
                 }
                 bw.flush();
+                JOptionPane.showMessageDialog(null, "保存成功!");
             } catch(IOException ee) {System.out.println("IOex");}
         }
         if (e.getSource() == webButton) {
