@@ -1,14 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.lang.Thread;
-
 
 public class GameView implements ActionListener {
     // 棋盘的总行数和总列数
@@ -20,6 +18,8 @@ public class GameView implements ActionListener {
     private int x = 800;
     private int y = 150;
 
+    private int ICONSIZE_W = 80, ICONSIZE_H = 80;
+    int cnt = 0;
     // 主面板
     private JFrame mainFrame;
 
@@ -29,13 +29,15 @@ public class GameView implements ActionListener {
     private JPanel centerPanel, southPanel, northPanel;
 
     // 重列，重新开始按钮
-    private JButton  resetButton, newlyButton, saveButton, webButton, loadButton;
+    private JButton resetButton, newlyButton, saveButton, loadButton, saveplaybackButton, webButton, loadplaybackButton;
 
     // 界面按钮数组,和棋盘数组 一样大
     private JButton[][] allButton;
 
+    private Image images[];
+
     // 初始化界面
-    public void init(){
+    public void init() {
         game = new Game();
         game.createNewGame();
         mainFrame = new JFrame("连连看");
@@ -44,43 +46,59 @@ public class GameView implements ActionListener {
         centerPanel = new JPanel();
         southPanel = new JPanel();
         northPanel = new JPanel();
-        thisContainer.add(centerPanel,"Center");
-        thisContainer.add(southPanel,"South");
-        thisContainer.add(northPanel,"North");
+        thisContainer.add(centerPanel, "Center");
+        thisContainer.add(southPanel, "South");
+        thisContainer.add(northPanel, "North");
         centerPanel.setLayout(new GridLayout(game.rows + 2, game.columns + 2));
+        images = new Image[game.imgs + 1];
+        for (int i = 1; i <= game.imgs; ++i) {
+            images[i] = new ImageIcon("source/" + i + ".png").getImage();
+        }
         this.allButton = new JButton[game.rows + 2][game.columns + 2];
         for (int i = 0; i <= game.rows + 1; i++) {
             for (int j = 0; j <= game.columns + 1; j++) {
                 allButton[i][j] = new JButton();
                 allButton[i][j].addActionListener(this);
+                allButton[i][j].setBackground(Color.WHITE);
                 centerPanel.add(allButton[i][j]);
             }
         }
-        drawBoard(0, 0);
-        
+
         resetButton = new JButton("重列");
         resetButton.addActionListener(this);
         newlyButton = new JButton("再来一局");
         newlyButton.addActionListener(this);
-        saveButton = new JButton("存储当前游戏");
+        saveButton = new JButton("存储游戏");
         saveButton.addActionListener(this);
         loadButton = new JButton("导入游戏");
         loadButton.addActionListener(this);
+        saveplaybackButton = new JButton("存储回放");
+        saveplaybackButton.addActionListener(this);
+        loadplaybackButton = new JButton("导入回放");
+        loadplaybackButton.addActionListener(this);
         webButton = new JButton("上传到网络");
         webButton.addActionListener(this);
         southPanel.add(resetButton);
         southPanel.add(newlyButton);
-        southPanel.add(saveButton);
         southPanel.add(loadButton);
+        southPanel.add(saveButton);
+        southPanel.add(saveplaybackButton);
+        southPanel.add(loadplaybackButton);
         southPanel.add(webButton);
         mainFrame.setBounds(x, y, width, height);
         mainFrame.setVisible(true);
         centerPanel.setVisible(true);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        mainFrame.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                drawBoard(game.x1, game.y1);
+            }
+        });
+        drawBoard(0, 0);
     }
 
-    public void operation(int x, int y){
+    public void operation(int x, int y) {
         for (int i = 0; i <= game.rows + 1; i++) {
             for (int j = 0; j <= game.columns + 1; j++) {
                 System.out.print(game.board[i][j]);
@@ -90,8 +108,8 @@ public class GameView implements ActionListener {
         }
         System.out.println(x + " " + y);
         Map<String, Object> res = game.canDelete(x, y);
-        if ((boolean)res.get("result") == true) {
-            List<Position> lis = (List<Position>)res.get("list");
+        if ((boolean) res.get("result") == true) {
+            List<Position> lis = (List<Position>) res.get("list");
             drawLine(lis);
         }
         game.press(x, y);
@@ -106,16 +124,19 @@ public class GameView implements ActionListener {
             }
         }
         if (win) {
-            JDialog dialog = new JDialog(mainFrame, "您赢了");
-            dialog.setSize(100, 100);
+            JDialog dialog = new JDialog(mainFrame);
+            dialog.setSize(200, 200);
+            dialog.setLocation(500, 500);
+            dialog.setLayout(new BorderLayout());
+            dialog.add(new JLabel("您赢了！", JLabel.CENTER));
             dialog.setVisible(true);
         }
     }
 
-    public void drawLine(List<Position> list){
+    public void drawLine(List<Position> list) {
         int width = centerPanel.getWidth();
         int height = centerPanel.getHeight();
-        for(int i = 0; i < list.size() - 1; i++){
+        for (int i = 0; i < list.size() - 1; i++) {
             // 最后一个点没有下个连接点
             Position position1 = list.get(i);
             Position position2 = list.get(i + 1);
@@ -123,19 +144,20 @@ public class GameView implements ActionListener {
             int y1 = position1.getY();
             int x2 = position2.getX();
             int y2 = position2.getY();
-            double x3 = (double)width/(game.columns + 2)*(y1 + 0.5);
-            double y3 = (double)height/(game.rows + 2)*(x1 + 0.5);
-            double x4 = (double)width/(game.columns + 2)*(y2 + 0.5);
-            double y4 = (double)height/(game.rows + 2)*(x2 + 0.5);
-            Graphics2D graphics2D = (Graphics2D)centerPanel.getGraphics();
-            graphics2D.setColor(Color.red);
+            double x3 = (double) width / (game.columns + 2) * (y1 + 0.5);
+            double y3 = (double) height / (game.rows + 2) * (x1 + 0.5);
+            double x4 = (double) width / (game.columns + 2) * (y2 + 0.5);
+            double y4 = (double) height / (game.rows + 2) * (x2 + 0.5);
+            Graphics2D graphics2D = (Graphics2D) centerPanel.getGraphics();
+            graphics2D.setColor(new Color(255, 117, 0));
             Line2D line2D = new Line2D.Double(x3, y3, x4, y4);
             graphics2D.draw(line2D);
             System.err.println(x1 + " " + y1 + " " + x2 + " " + y2);
         }
         try {
-            Thread.sleep(500);
-        } catch (Exception e) {}
+            Thread.sleep(300);
+        } catch (Exception e) {
+        }
         centerPanel.repaint();
     }
 
@@ -147,54 +169,57 @@ public class GameView implements ActionListener {
             drawBoard(0, 0);
         }
         // 重新布局剩余的图片
-        if (e.getSource() == resetButton){
+        if (e.getSource() == resetButton) {
             game.reset();
             drawBoard(0, 0);
         }
-        // 导入原有游戏
-        if(e.getSource() == loadButton){
+        // 导入游戏
+        if (e.getSource() == loadButton) {
+        }
+        // 储存游戏
+        if (e.getSource() == saveButton) {
+        }
+        // 导入原有回放
+        if (e.getSource() == loadplaybackButton) {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.showOpenDialog(mainFrame);
             File f = fileChooser.getSelectedFile();
             try {
-                game = Game.readGameFromFile(f);
+                game = Game.readGameFromStream(new FileInputStream(f));
                 replay();
+            } catch (Exception ee) {
+                System.out.println(ee);
             }
-            catch(Exception ee) {System.out.println(ee);}
         }
-        // 存储当前游戏
-        if (e.getSource() == saveButton) {
+        // 存储当前回放
+        if (e.getSource() == saveplaybackButton) {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.showSaveDialog(mainFrame);
             File f = fileChooser.getSelectedFile();
             try {
-                game.saveGameToFile(f);
-            } catch(IOException ee) {
+                game.saveGameToStream(new FileOutputStream(f));
+            } catch (IOException ee) {
                 System.out.println(ee);
             }
         }
-        /*if (e.getSource() == webButton) {
-            String hostName = "47.94.82.10";
+
+        if (e.getSource() == webButton) {
+            cnt++;
+            Client c = new Client();
+            File f = new File("./data/onlineSave" + cnt);
             try {
-                Socket s = new Socket(hostName, 888);
-                OutputStream os = s.getOutputStream();
-                BufferedOutputStream bs = new BufferedOutputStream(os);
-                for (int row=0;row<countRows;row++){
-                    for (int column=0;column<countColumns;column++){
-                        String str = arry[row][column]+" ";
-                        for (int i = 0; i < str.length(); i++) {
-                            bs.write(str.charAt(i));
-                        }
-                    }
-                    bs.write('\n');
-                }
-                s.close();
-            } catch(IOException ee) {System.out.println(ee.toString());}
-        }*/
+                game.saveGameToStream(new FileOutputStream(f));
+                c.saveFile(f.getAbsolutePath());
+                System.out.println(f.getName());
+            } catch (IOException ee) {
+                System.out.println(ee);
+            }
+        }
+
         // 监控棋盘
-        for (int i = 1; i <= game.rows; i++){
-            for (int j = 1; j <= game.columns; j++){
-                if (e.getSource() == allButton[i][j]){
+        for (int i = 1; i <= game.rows; i++) {
+            for (int j = 1; j <= game.columns; j++) {
+                if (e.getSource() == allButton[i][j]) {
                     System.out.println(i + " " + j);
                     operation(i, j);
                 }
@@ -203,9 +228,16 @@ public class GameView implements ActionListener {
     }
 
     public void drawBoard(int x, int y) {
+        int iconSize = Math.min(centerPanel.getWidth() / (game.columns + 2), centerPanel.getHeight() / (game.rows + 2)) * 3 / 5;
+        System.out.println(centerPanel.getSize());
         for (int i = 0; i <= game.rows + 1; i++) {
             for (int j = 0; j <= game.columns + 1; j++) {
-                allButton[i][j].setText(game.board[i][j] + "");
+                // allButton[i][j].setText(game.board[i][j] + "");
+                allButton[i][j].setText("");
+                if (game.board[i][j] != 0) {
+                    Image newimg = images[game.board[i][j]].getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+                    allButton[i][j].setIcon(new ImageIcon(newimg));
+                }
                 allButton[i][j].setVisible(game.board[i][j] != 0);
                 allButton[i][j].setFocusPainted(game.pressed && i == x && j == y);
             }
@@ -228,15 +260,16 @@ public class GameView implements ActionListener {
                 drawBoard(0, 0);
                 try {
                     Thread.sleep(300);
-                } catch (Exception e) {};
+                } catch (Exception e) {}
                 for (int i = 0; i < history.size(); i++) {
                     int x = history.get(i).getX(), y = history.get(i).getY();
                     operation(x, y);
                     allButton[6][6].setFocusPainted(true);
                     centerPanel.repaint();
                     try {
-                        Thread.sleep(500);
-                    } catch (Exception e) {}
+                        Thread.sleep(300);
+                    } catch (Exception e) {
+                    }
                 }
             }
         }).start();
