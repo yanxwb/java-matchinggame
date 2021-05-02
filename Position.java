@@ -1,10 +1,12 @@
+import java.io.Serializable;
+
 /**
  * @author ZhongLingYun
  * @Title: Position
  * @Description: 位置实体
  * @date 2018/10/2510:28
  */
-public class Position {
+public class Position implements Serializable{
 
     /**
      * x坐标
