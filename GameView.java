@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.event.*;
@@ -29,7 +30,8 @@ public class GameView implements ActionListener {
     private JPanel centerPanel, southPanel, northPanel;
 
     // 重列，重新开始按钮
-    private JButton resetButton, newlyButton, saveButton, loadButton, saveplaybackButton, webButton, loadplaybackButton;
+    private JButton resetButton, newlyButton, saveButton, loadButton,
+                    saveplaybackButton, webButton, loadplaybackButton, loadfromwebButton, loadplayfromwebButton;
 
     // 界面按钮数组,和棋盘数组 一样大
     private JButton[][] allButton;
@@ -72,19 +74,25 @@ public class GameView implements ActionListener {
         saveButton.addActionListener(this);
         loadButton = new JButton("导入游戏");
         loadButton.addActionListener(this);
-        saveplaybackButton = new JButton("存储回放");
-        saveplaybackButton.addActionListener(this);
+        //saveplaybackButton = new JButton("存储回放");
+        //saveplaybackButton.addActionListener(this);
         loadplaybackButton = new JButton("导入回放");
         loadplaybackButton.addActionListener(this);
         webButton = new JButton("上传到网络");
         webButton.addActionListener(this);
+        loadfromwebButton = new JButton("从网络导入游戏");
+        loadfromwebButton.addActionListener(this);
+        loadplayfromwebButton = new JButton("从网络导入回放");
+        loadplayfromwebButton.addActionListener(this);
         southPanel.add(resetButton);
         southPanel.add(newlyButton);
-        southPanel.add(loadButton);
         southPanel.add(saveButton);
-        southPanel.add(saveplaybackButton);
+        southPanel.add(loadButton);
         southPanel.add(loadplaybackButton);
+        //southPanel.add(saveplaybackButton);
         southPanel.add(webButton);
+        southPanel.add(loadfromwebButton);
+        southPanel.add(loadplayfromwebButton);
         mainFrame.setBounds(x, y, width, height);
         mainFrame.setVisible(true);
         centerPanel.setVisible(true);
@@ -175,13 +183,23 @@ public class GameView implements ActionListener {
         }
         // 导入游戏
         if (e.getSource() == loadButton) {
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./data"));
+            JFileChooser fileChooser = new JFileChooser(fsv);
+            fileChooser.setCurrentDirectory(new File("./data"));
+            fileChooser.showOpenDialog(mainFrame);
+            File f = fileChooser.getSelectedFile();
+            try {
+                game = Game.readGameFromStream(new FileInputStream(f));
+                drawBoard(0,0);
+            } catch (Exception ee) {
+                System.out.println(ee);
+            }
         }
-        // 储存游戏
-        if (e.getSource() == saveButton) {
-        }
-        // 导入原有回放
+        // 导入回放
         if (e.getSource() == loadplaybackButton) {
-            JFileChooser fileChooser = new JFileChooser();
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./data"));
+            JFileChooser fileChooser = new JFileChooser(fsv);
+            fileChooser.setCurrentDirectory(new File("./data"));
             fileChooser.showOpenDialog(mainFrame);
             File f = fileChooser.getSelectedFile();
             try {
@@ -191,9 +209,11 @@ public class GameView implements ActionListener {
                 System.out.println(ee);
             }
         }
-        // 存储当前回放
-        if (e.getSource() == saveplaybackButton) {
-            JFileChooser fileChooser = new JFileChooser();
+        // 存储游戏
+        if (e.getSource() == saveButton) {
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./data"));
+            JFileChooser fileChooser = new JFileChooser(fsv);
+            fileChooser.setCurrentDirectory(new File("./data"));
             fileChooser.showSaveDialog(mainFrame);
             File f = fileChooser.getSelectedFile();
             try {
@@ -202,16 +222,44 @@ public class GameView implements ActionListener {
                 System.out.println(ee);
             }
         }
-
+        // 存储到网络
         if (e.getSource() == webButton) {
             cnt++;
             Client c = new Client();
-            File f = new File("./data/onlineSave" + cnt);
+            File f = new File("./OnlineData/onlineSave" + cnt);
             try {
                 game.saveGameToStream(new FileOutputStream(f));
                 c.saveFile(f.getAbsolutePath());
                 System.out.println(f.getName());
             } catch (IOException ee) {
+                System.out.println(ee);
+            }
+        }
+        // 从网络导入游戏
+        if(e.getSource()==loadfromwebButton){
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./OnlineData"));
+            JFileChooser fileChooser = new JFileChooser(fsv);
+            fileChooser.setCurrentDirectory(new File("./OnlineData"));
+            fileChooser.showOpenDialog(mainFrame);
+            File f = fileChooser.getSelectedFile();
+            try {
+                game = Game.readGameFromStream(new FileInputStream(f));
+                drawBoard(0,0);
+            } catch (Exception ee) {
+                System.out.println(ee);
+            }
+        }
+        // 从网络导入回放
+        if(e.getSource()==loadplayfromwebButton){
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./OnlineData"));
+            JFileChooser fileChooser = new JFileChooser(fsv);
+            fileChooser.setCurrentDirectory(new File("./OnlineData"));
+            fileChooser.showOpenDialog(mainFrame);
+            File f = fileChooser.getSelectedFile();
+            try {
+                game = Game.readGameFromStream(new FileInputStream(f));
+                replay();
+            } catch (Exception ee) {
                 System.out.println(ee);
             }
         }

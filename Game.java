@@ -271,3 +271,42 @@ public class Game implements Serializable {
         return map = threeLines(x1, y1, x2, y2, array);
     }
 }
+
+
+class DirectoryRestrictedFileSystemView extends javax.swing.filechooser.FileSystemView
+{
+    private final File[] rootDirectories;
+
+    DirectoryRestrictedFileSystemView(File rootDirectory)
+    {
+        this.rootDirectories = new File[] {rootDirectory};
+    }
+
+    DirectoryRestrictedFileSystemView(File[] rootDirectories)
+    {
+        this.rootDirectories = rootDirectories;
+    }
+
+    @Override
+    public File createNewFolder(File containingDir) throws IOException
+    {
+        throw new UnsupportedOperationException("Unable to create directory");
+    }
+
+    @Override
+    public File[] getRoots()
+    {
+        return rootDirectories;
+    }
+
+    @Override
+    public boolean isRoot(File file)
+    {
+        for (File root : rootDirectories) {
+            if (root.equals(file)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
