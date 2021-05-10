@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.event.*;
@@ -19,7 +18,6 @@ public class GameView implements ActionListener {
     private int x = 800;
     private int y = 150;
 
-    private int ICONSIZE_W = 80, ICONSIZE_H = 80;
     int cnt = 0;
     // 主面板
     private JFrame mainFrame;
@@ -30,8 +28,8 @@ public class GameView implements ActionListener {
     private JPanel centerPanel, southPanel, northPanel;
 
     // 重列，重新开始按钮
-    private JButton resetButton, newlyButton, saveButton, loadButton,
-                    saveplaybackButton, webButton, loadplaybackButton, loadfromwebButton, loadplayfromwebButton;
+    private JButton resetButton, newlyButton, saveButton, loadButton, webButton, loadplaybackButton, loadfromwebButton,
+            loadplayfromwebButton;
 
     // 界面按钮数组,和棋盘数组 一样大
     private JButton[][] allButton;
@@ -74,8 +72,6 @@ public class GameView implements ActionListener {
         saveButton.addActionListener(this);
         loadButton = new JButton("导入游戏");
         loadButton.addActionListener(this);
-        //saveplaybackButton = new JButton("存储回放");
-        //saveplaybackButton.addActionListener(this);
         loadplaybackButton = new JButton("导入回放");
         loadplaybackButton.addActionListener(this);
         webButton = new JButton("上传到网络");
@@ -89,7 +85,6 @@ public class GameView implements ActionListener {
         southPanel.add(saveButton);
         southPanel.add(loadButton);
         southPanel.add(loadplaybackButton);
-        //southPanel.add(saveplaybackButton);
         southPanel.add(webButton);
         southPanel.add(loadfromwebButton);
         southPanel.add(loadplayfromwebButton);
@@ -190,7 +185,7 @@ public class GameView implements ActionListener {
             File f = fileChooser.getSelectedFile();
             try {
                 game = Game.readGameFromStream(new FileInputStream(f));
-                drawBoard(0,0);
+                drawBoard(0, 0);
             } catch (Exception ee) {
                 System.out.println(ee);
             }
@@ -236,22 +231,24 @@ public class GameView implements ActionListener {
             }
         }
         // 从网络导入游戏
-        if(e.getSource()==loadfromwebButton){
-            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./OnlineData"));
+        if (e.getSource() == loadfromwebButton) {
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(
+                    new File("./OnlineData"));
             JFileChooser fileChooser = new JFileChooser(fsv);
             fileChooser.setCurrentDirectory(new File("./OnlineData"));
             fileChooser.showOpenDialog(mainFrame);
             File f = fileChooser.getSelectedFile();
             try {
                 game = Game.readGameFromStream(new FileInputStream(f));
-                drawBoard(0,0);
+                drawBoard(0, 0);
             } catch (Exception ee) {
                 System.out.println(ee);
             }
         }
         // 从网络导入回放
-        if(e.getSource()==loadplayfromwebButton){
-            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(new File("./OnlineData"));
+        if (e.getSource() == loadplayfromwebButton) {
+            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(
+                    new File("./OnlineData"));
             JFileChooser fileChooser = new JFileChooser(fsv);
             fileChooser.setCurrentDirectory(new File("./OnlineData"));
             fileChooser.showOpenDialog(mainFrame);
@@ -276,7 +273,8 @@ public class GameView implements ActionListener {
     }
 
     public void drawBoard(int x, int y) {
-        int iconSize = Math.min(centerPanel.getWidth() / (game.columns + 2), centerPanel.getHeight() / (game.rows + 2)) * 3 / 5;
+        int iconSize = Math.min(centerPanel.getWidth() / (game.columns + 2), centerPanel.getHeight() / (game.rows + 2))
+                * 3 / 5;
         System.out.println(centerPanel.getSize());
         for (int i = 0; i <= game.rows + 1; i++) {
             for (int j = 0; j <= game.columns + 1; j++) {
@@ -308,7 +306,8 @@ public class GameView implements ActionListener {
                 drawBoard(0, 0);
                 try {
                     Thread.sleep(300);
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
                 for (int i = 0; i < history.size(); i++) {
                     int x = history.get(i).getX(), y = history.get(i).getY();
                     operation(x, y);
