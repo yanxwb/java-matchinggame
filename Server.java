@@ -3,7 +3,7 @@ import java.net.Socket;
 import java.io.*;
 
 public class Server {
-	private String dir = "OnlineData/";
+	private String dir = "../Data/";
 	private ServerSocket ss;
 	private Socket s;
 	private DataInputStream fi;
