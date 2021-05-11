@@ -1,13 +1,19 @@
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.io.*;
 
 public class Server {
 	private String dir = "../Data/";
 	private ServerSocket ss;
 	private Socket s;
-	private DataInputStream fi;
-	private BufferedOutputStream fo;
+	private DataInputStream ctrli;
+	private DataOutputStream ctrlo;
+
+	private DataInputStream geti;
+	private BufferedOutputStream geto;
+	private BufferedInputStream sendi;
+	private DataOutputStream sendo;
 
 	public Server() {
 
@@ -19,12 +25,19 @@ public class Server {
 			while (true) {
 				s = ss.accept();
 				System.out.println("Client:\t" + s.getInetAddress().getLocalHost() + "\tConnected.");
-				fi = new DataInputStream(s.getInputStream());
-
-				String name = fi.readUTF();
-				long length = fi.readLong();
-				save(name, length);
-				System.out.println("客户端：" + name);
+				ctrli = new DataInputStream(s.getInputStream());
+				boolean flag = ctrli.readBoolean();
+				// 若为1则接受，若为零则发送
+				if (flag) {
+					String name = ctrli.readUTF();
+					long length = ctrli.readLong();
+					System.out.println("从客户端接受文件：" + name);
+					get(name, length);
+				} else {
+					String name = ctrli.readUTF();
+					System.out.println("向客户端发送文件：" + name);
+					send(name);
+				}
 			}
 
 		} catch (Exception e) {
@@ -39,25 +52,56 @@ public class Server {
 
 	}
 
-	public void save(String filename, long length) throws IOException {
+	public void get(String filename, long length) throws IOException {
 		// 实际上这个length 参数并没有被用上...
 		try {
+			geti = new DataInputStream(s.getInputStream());
 			File f = new File(this.dir + filename);
-			fo = new BufferedOutputStream(new FileOutputStream(f));
+			geto = new BufferedOutputStream(new FileOutputStream(f));
 			byte[] bytes = new byte[1024];
-			while ((fi.read(bytes, 0, bytes.length)) != -1) {
-				fo.write(bytes);
-				fo.flush();
+			while ((geti.read(bytes, 0, bytes.length)) != -1) {
+				geto.write(bytes);
+				geto.flush();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			if (fo != null)
-				fo.close();
-			if (fi != null)
-				fi.close();
+			if (geto != null)
+				geto.close();
+			if (geti != null)
+				geti.close();
 			s.close();
 		}
 
+	}
+
+	public void send(String filename) throws IOException {
+		try {
+			sendo = new DataOutputStream(s.getOutputStream());
+			File f = new File(this.dir + filename);
+			if (!f.exists()) {
+				System.out.println("文件不存在！");
+				return;
+			}
+			sendi = new BufferedInputStream(new FileInputStream(f));
+			byte b[] = new byte[1024];
+			while (sendi.read(b) != -1) {
+				sendo.write(b);
+				sendo.flush();
+			}
+			System.out.println("已发送" + filename);
+		} catch (UnknownHostException e) {
+			System.out.println("UnknownHostException!");
+			// e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("IOException!");
+			// e.printStackTrace();
+		} finally {
+			if (sendi != null)
+				sendi.close();
+			if (sendo != null)
+				sendo.close();
+			s.close();
+		}
 	}
 }

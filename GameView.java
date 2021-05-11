@@ -221,28 +221,22 @@ public class GameView implements ActionListener {
         if (e.getSource() == webButton) {
             cnt++;
             Client c = new Client();
-            File f = new File("./OnlineData/onlineSave" + cnt);
+            File f = new File(c.dir + "onlineSave" + cnt);
             try {
                 game.saveGameToStream(new FileOutputStream(f));
-                c.saveFile(f.getAbsolutePath());
+                c.sendFile(f.getAbsolutePath());
                 System.out.println(f.getName());
             } catch (IOException ee) {
-                System.out.println(ee);
+                System.out.println("get IOExecption when sending file. ");
             }
         }
         // 从网络导入游戏
         if (e.getSource() == loadfromwebButton) {
-            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(
-                    new File("./OnlineData"));
-            JFileChooser fileChooser = new JFileChooser(fsv);
-            fileChooser.setCurrentDirectory(new File("./OnlineData"));
-            fileChooser.showOpenDialog(mainFrame);
-            File f = fileChooser.getSelectedFile();
             try {
-                game = Game.readGameFromStream(new FileInputStream(f));
-                drawBoard(0, 0);
-            } catch (Exception ee) {
-                System.out.println(ee);
+                Client c = new Client();
+                c.getFile("OnlineSave1");
+            } catch (IOException ee) {
+                System.out.println("get IOExecption when getting file. ");
             }
         }
         // 从网络导入回放
