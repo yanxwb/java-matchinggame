@@ -1,6 +1,7 @@
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.io.*;
 
 public class Server {
@@ -26,17 +27,28 @@ public class Server {
 				s = ss.accept();
 				System.out.println("Client:\t" + s.getInetAddress().getLocalHost() + "\tConnected.");
 				ctrli = new DataInputStream(s.getInputStream());
-				boolean flag = ctrli.readBoolean();
-				// 若为1则接受，若为零则发送
-				if (flag) {
+				ctrlo = new DataOutputStream(s.getOutputStream());
+				Integer flag = ctrli.readInt();
+				// 若为1则接受，若为2则发送，若未0则发送列表
+				if (flag == 1) {
 					String name = ctrli.readUTF();
 					long length = ctrli.readLong();
 					System.out.println("从客户端接受文件：" + name);
 					get(name, length);
-				} else {
+				}
+				if (flag == 2) {
 					String name = ctrli.readUTF();
 					System.out.println("向客户端发送文件：" + name);
 					send(name);
+				}
+				if (flag == 0) {
+					File f = new File(this.dir);
+					String[] l = f.list();
+					ctrlo.writeInt(l.length);
+					for (int i = 0; i < l.length; ++i) {
+						ctrlo.writeUTF(l[i]);
+
+					}
 				}
 			}
 
@@ -53,6 +65,7 @@ public class Server {
 	}
 
 	public void get(String filename, long length) throws IOException {
+		// 函数接受参数为文件名，不包含路径。
 		// 实际上这个length 参数并没有被用上...
 		try {
 			geti = new DataInputStream(s.getInputStream());
@@ -76,6 +89,7 @@ public class Server {
 	}
 
 	public void send(String filename) throws IOException {
+		// 函数接受参数为文件名，不包含路径。
 		try {
 			sendo = new DataOutputStream(s.getOutputStream());
 			File f = new File(this.dir + filename);

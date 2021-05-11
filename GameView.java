@@ -234,25 +234,30 @@ public class GameView implements ActionListener {
         if (e.getSource() == loadfromwebButton) {
             try {
                 Client c = new Client();
-                c.getFile("OnlineSave1");
+                String[] names = c.getList();
+                selectFileAndLoad(names, c, false);
             } catch (IOException ee) {
                 System.out.println("get IOExecption when getting file. ");
+            } catch (Exception ee) {
+                System.out.println(ee);
             }
         }
         // 从网络导入回放
         if (e.getSource() == loadplayfromwebButton) {
-            javax.swing.filechooser.FileSystemView fsv = new DirectoryRestrictedFileSystemView(
-                    new File("./OnlineData"));
-            JFileChooser fileChooser = new JFileChooser(fsv);
-            fileChooser.setCurrentDirectory(new File("./OnlineData"));
-            fileChooser.showOpenDialog(mainFrame);
-            File f = fileChooser.getSelectedFile();
-            try {
-                game = Game.readGameFromStream(new FileInputStream(f));
-                replay();
-            } catch (Exception ee) {
-                System.out.println(ee);
-            }
+            // try {
+            // Client c = new Client();
+            // String[] names = c.getList();
+            // String tempname = selectFile(names);
+            // c.getFile(tempname);
+
+            // File f = new File(c.dir + c.name);
+            // game = Game.readGameFromStream(new FileInputStream(f));
+            // replay();
+            // } catch (IOException ee) {
+            // System.out.println("get IOExecption when getting file. ");
+            // } catch (Exception ee) {
+            // System.out.println(ee);
+            // }
         }
 
         // 监控棋盘
@@ -314,5 +319,52 @@ public class GameView implements ActionListener {
                 }
             }
         }).start();
+    }
+
+    public void selectFileAndLoad(String[] names, Client c, Boolean replay) throws IOException {
+        JFrame frame = new JFrame();
+        frame.setBounds(100, 100, 270, 192);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.getContentPane().setLayout(null);
+        frame.setLocationRelativeTo(null); // 窗体居中
+        frame.setVisible(true);
+
+        JComboBox comboBox = new JComboBox();
+        // 下拉框
+        for (String item : names) {
+            comboBox.addItem(item);
+        }
+        comboBox.setFont(new Font("宋体", Font.PLAIN, 14));
+        comboBox.setBounds(53, 20, 140, 23);
+        frame.getContentPane().add(comboBox);
+
+        JButton btnComfirm = new JButton("确定");
+        btnComfirm.setFont(new Font("宋体", Font.PLAIN, 14));
+        btnComfirm.setBounds(10, 115, 93, 23);
+        frame.getContentPane().add(btnComfirm);
+        btnComfirm.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String filename = comboBox.getSelectedItem().toString();
+                    Client c = new Client();
+                    c.getFile(filename);
+                    System.out.println("获取文件成功！");
+                    File f = new File(c.dir + c.name);
+                    game = Game.readGameFromStream(new FileInputStream(f));
+                    if (!replay) {
+                        drawBoard(0, 0);
+                    } else {
+                        replay();
+                    }
+                    frame.dispose();
+                } catch (IOException ee) {
+                    ee.printStackTrace();
+                    System.out.println("存入文件失败！");
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                    System.out.println("存入文件失败！");
+                }
+            }
+        });
     }
 }

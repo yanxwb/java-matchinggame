@@ -5,6 +5,7 @@ import java.io.*;
 public class Client {
 	private Socket s;
 	public String dir = "./OnlineData/";
+	public String name = "temp";
 	private DataInputStream ctrli;
 	private DataOutputStream ctrlo;
 
@@ -17,6 +18,7 @@ public class Client {
 		try {
 			s = new Socket("127.0.0.1", 8848);
 			ctrlo = new DataOutputStream(s.getOutputStream());
+			ctrli = new DataInputStream(s.getInputStream());
 		} catch (UnknownHostException e) {
 			System.out.println("UnknownHostException!");
 			// e.printStackTrace();
@@ -32,6 +34,7 @@ public class Client {
 
 	public void sendFile(String filename) throws IOException {
 		// 用于读取指定文件并上传
+		// 函数接受参数为文件名，不包含路径。
 		try {
 			sendo = new DataOutputStream(s.getOutputStream());
 			// 向服务器端发送一条消息
@@ -41,7 +44,7 @@ public class Client {
 				return;
 			}
 			// 发送标记信息
-			ctrlo.writeBoolean(true);
+			ctrlo.writeInt(1);
 			// 发送文件信息
 			ctrlo.writeUTF(f.getName());
 			ctrlo.flush();
@@ -78,10 +81,12 @@ public class Client {
 	}
 
 	public void getFile(String filename) throws IOException {
+		// 下载指定文件并保存至本地
+		// 函数接受参数为文件名，不包含路径。
 		try {
-			ctrlo.writeBoolean(false);
+			ctrlo.writeInt(2);
 			ctrlo.writeUTF(filename);
-			File f = new File(this.dir + filename);
+			File f = new File(this.dir + this.name);
 			geto = new BufferedOutputStream(new FileOutputStream(f));
 			geti = new DataInputStream(s.getInputStream());
 			byte[] bytes = new byte[1024];
@@ -97,6 +102,23 @@ public class Client {
 			if (geto != null)
 				geto.close();
 			s.close();
+		}
+	}
+
+	public String[] getList() {
+		try {
+			ctrlo.writeInt(0);
+			Integer n = ctrli.readInt();
+			String[] str = new String[n];
+			for (int i = 0; i < n; i++) {
+				String temp = ctrli.readUTF();
+				str[i] = temp;
+			}
+			return str;
+
+		} catch (IOException e) {
+			System.out.println("读取列表失败！！！");
+			return null;
 		}
 	}
 }
