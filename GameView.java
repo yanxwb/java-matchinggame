@@ -235,7 +235,7 @@ public class GameView implements ActionListener {
             try {
                 Client c = new Client();
                 String[] names = c.getList();
-                selectFileAndLoad(names, c, false);
+                selectFileAndLoad(names, false);
             } catch (IOException ee) {
                 System.out.println("get IOExecption when getting file. ");
             } catch (Exception ee) {
@@ -244,20 +244,15 @@ public class GameView implements ActionListener {
         }
         // 从网络导入回放
         if (e.getSource() == loadplayfromwebButton) {
-            // try {
-            // Client c = new Client();
-            // String[] names = c.getList();
-            // String tempname = selectFile(names);
-            // c.getFile(tempname);
-
-            // File f = new File(c.dir + c.name);
-            // game = Game.readGameFromStream(new FileInputStream(f));
-            // replay();
-            // } catch (IOException ee) {
-            // System.out.println("get IOExecption when getting file. ");
-            // } catch (Exception ee) {
-            // System.out.println(ee);
-            // }
+            try {
+                Client c = new Client();
+                String[] names = c.getList();
+                selectFileAndLoad(names, true);
+            } catch (IOException ee) {
+                System.out.println("get IOExecption when getting file. ");
+            } catch (Exception ee) {
+                System.out.println(ee);
+            }
         }
 
         // 监控棋盘
@@ -321,9 +316,9 @@ public class GameView implements ActionListener {
         }).start();
     }
 
-    public void selectFileAndLoad(String[] names, Client c, Boolean replay) throws IOException {
+    public void selectFileAndLoad(String[] names, Boolean replay) throws IOException {
         JFrame frame = new JFrame();
-        frame.setBounds(100, 100, 270, 192);
+        frame.setBounds(100, 100, 300, 160);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.getContentPane().setLayout(null);
         frame.setLocationRelativeTo(null); // 窗体居中
@@ -335,12 +330,12 @@ public class GameView implements ActionListener {
             comboBox.addItem(item);
         }
         comboBox.setFont(new Font("宋体", Font.PLAIN, 14));
-        comboBox.setBounds(53, 20, 140, 23);
+        comboBox.setBounds(80, 20, 140, 23);
         frame.getContentPane().add(comboBox);
 
         JButton btnComfirm = new JButton("确定");
         btnComfirm.setFont(new Font("宋体", Font.PLAIN, 14));
-        btnComfirm.setBounds(10, 115, 93, 23);
+        btnComfirm.setBounds(100, 80, 100, 25);
         frame.getContentPane().add(btnComfirm);
         btnComfirm.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

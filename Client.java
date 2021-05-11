@@ -105,7 +105,7 @@ public class Client {
 		}
 	}
 
-	public String[] getList() {
+	public String[] getList() throws IOException {
 		try {
 			ctrlo.writeInt(0);
 			Integer n = ctrli.readInt();
@@ -115,10 +115,11 @@ public class Client {
 				str[i] = temp;
 			}
 			return str;
-
 		} catch (IOException e) {
 			System.out.println("读取列表失败！！！");
 			return null;
+		} finally {
+			s.close();
 		}
 	}
 }
