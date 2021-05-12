@@ -221,11 +221,10 @@ public class GameView implements ActionListener {
         if (e.getSource() == webButton) {
             cnt++;
             Client c = new Client();
-            File f = new File(c.dir + "onlineSave" + cnt);
+            File f = new File(c.dir + c.sendname);
             try {
                 game.saveGameToStream(new FileOutputStream(f));
                 c.sendFile(f.getAbsolutePath());
-                System.out.println(f.getName());
             } catch (IOException ee) {
                 System.out.println("get IOExecption when sending file. ");
             }
